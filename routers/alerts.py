@@ -1,10 +1,13 @@
 from fastapi import APIRouter, HTTPException
-from models import SentryAlert, AgentContext, AlertProcessingResult, ProcessingStep
-from mock_db import load_sentry_alerts, get_sentry_alert
+from models import SentryAlert, AgentContext, AlertProcessingResult, ProcessingStep, JiraTicket
+from mock_db import load_sentry_alerts, get_sentry_alert, load_jira_tickets
 from agents import run_gatekeeper, run_architect, run_diplomat
 
 router = APIRouter(prefix="/api", tags=["alerts"])
 
+@router.get("/jira/tickets", response_model=list[JiraTicket])
+async def list_jira_tickets():
+    return load_jira_tickets()
 
 @router.get("/alerts", response_model=list[SentryAlert])
 async def list_alerts():

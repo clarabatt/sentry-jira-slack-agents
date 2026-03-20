@@ -1,628 +1,895 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sentry Agent — POC</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0d0f12;
-    --surface: #13161a;
-    --surface2: #1a1e24;
-    --border: #252930;
-    --border2: #2e343d;
-    --text: #e2e6ed;
-    --muted: #606672;
-    --accent: #5c6fff;
-    --accent-dim: #2a2f5c;
-    --teal: #00c4a0;
-    --teal-dim: #0a2e28;
-    --amber: #f5a623;
-    --amber-dim: #2e2108;
-    --red: #ff4f4f;
-    --red-dim: #2e0f0f;
-    --green: #3dd68c;
-    --green-dim: #0a2e1c;
-  }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentry Agent — POC</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d0f12;
+        --surface: #13161a;
+        --surface2: #1a1e24;
+        --border: #252930;
+        --border2: #2e343d;
+        --text: #e2e6ed;
+        --muted: #606672;
+        --accent: #5c6fff;
+        --accent-dim: #2a2f5c;
+        --teal: #00c4a0;
+        --teal-dim: #0a2e28;
+        --amber: #f5a623;
+        --amber-dim: #2e2108;
+        --red: #ff4f4f;
+        --red-dim: #2e0f0f;
+        --green: #3dd68c;
+        --green-dim: #0a2e1c;
+      }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-  body {
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: grid;
-    grid-template-columns: 260px 1fr 340px;
-    grid-template-rows: 52px 1fr;
-  }
+      body {
+        font-family: "JetBrains Mono", monospace;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 260px 1fr 340px;
+        grid-template-rows: 52px 1fr;
+      }
 
-  /* ── TOPBAR ── */
-  .topbar {
-    grid-column: 1 / -1;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    gap: 16px;
-  }
-  .topbar-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 15px;
-    letter-spacing: -0.02em;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .topbar-logo .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
-  }
-  .topbar-channel {
-    font-size: 12px;
-    color: var(--muted);
-    padding: 3px 10px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-  }
-  .topbar-status {
-    margin-left: auto;
-    font-size: 11px;
-    color: var(--teal);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .topbar-status::before {
-    content: '';
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--teal);
-    animation: pulse 2s ease infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+      /* ── TOPBAR ── */
+      .topbar {
+        grid-column: 1 / -1;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        gap: 16px;
+      }
+      .topbar-logo {
+        font-family: "Syne", sans-serif;
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .topbar-logo .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 8px var(--accent);
+      }
+      .topbar-channel {
+        font-size: 12px;
+        color: var(--muted);
+        padding: 3px 10px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+      }
+      .topbar-status {
+        margin-left: auto;
+        font-size: 11px;
+        color: var(--teal);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .topbar-status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--teal);
+        animation: pulse 2s ease infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
 
-  /* ── SIDEBAR ── */
-  .sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 16px 0;
-    overflow-y: auto;
-  }
-  .sidebar-section {
-    padding: 0 12px 16px;
-  }
-  .sidebar-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    text-transform: uppercase;
-    padding: 0 8px 8px;
-  }
-  .sidebar-item {
-    padding: 6px 8px;
-    border-radius: 5px;
-    font-size: 12px;
-    color: var(--muted);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.15s;
-  }
-  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
-  .sidebar-item.active { background: var(--accent-dim); color: var(--accent); }
-  .sidebar-item .badge {
-    margin-left: auto;
-    background: var(--red);
-    color: #fff;
-    font-size: 10px;
-    padding: 1px 5px;
-    border-radius: 8px;
-    font-weight: 600;
-  }
+      /* ── SIDEBAR ── */
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        padding: 16px 0;
+        overflow-y: auto;
+      }
+      .sidebar-section {
+        padding: 0 12px 16px;
+      }
+      .sidebar-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        text-transform: uppercase;
+        padding: 0 8px 8px;
+      }
+      .sidebar-item {
+        padding: 6px 8px;
+        border-radius: 5px;
+        font-size: 12px;
+        color: var(--muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.15s;
+      }
+      .sidebar-item:hover {
+        background: var(--surface2);
+        color: var(--text);
+      }
+      .sidebar-item.active {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+      .sidebar-item .badge {
+        margin-left: auto;
+        background: var(--red);
+        color: #fff;
+        font-size: 10px;
+        padding: 1px 5px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
 
-  .team-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .stat-block {
-    margin: 0 12px;
-    padding: 12px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
-  .stat-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    padding: 3px 0;
-  }
-  .stat-row span:last-child { color: var(--accent); font-weight: 600; }
+      .team-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .stat-block {
+        margin: 0 12px;
+        padding: 12px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        padding: 3px 0;
+      }
+      .stat-row span:last-child {
+        color: var(--accent);
+        font-weight: 600;
+      }
 
-  /* ── MAIN FEED ── */
-  .feed {
-    background: var(--bg);
-    overflow-y: auto;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  .feed-header {
-    padding: 16px 20px 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    z-index: 10;
-  }
-  .feed-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-  }
-  .feed-count {
-    font-size: 11px;
-    color: var(--muted);
-    padding: 2px 8px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-  }
-  .reset-btn {
-    margin-left: auto;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--muted);
-    background: none;
-    border: 1px solid var(--border);
-    padding: 4px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .reset-btn:hover { color: var(--text); border-color: var(--border2); }
+      /* ── MAIN FEED ── */
+      .feed {
+        background: var(--bg);
+        overflow-y: auto;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .feed-header {
+        padding: 16px 20px 12px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+        z-index: 10;
+      }
+      .feed-title {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .feed-count {
+        font-size: 11px;
+        color: var(--muted);
+        padding: 2px 8px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+      }
+      .reset-btn {
+        margin-left: auto;
+        font-size: 11px;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--muted);
+        background: none;
+        border: 1px solid var(--border);
+        padding: 4px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .reset-btn:hover {
+        color: var(--text);
+        border-color: var(--border2);
+      }
 
-  .alerts-list {
-    padding: 12px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+      .alerts-list {
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
 
-  /* ── ALERT CARD ── */
-  .alert-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: border-color 0.2s;
-  }
-  .alert-card:hover { border-color: var(--border2); }
-  .alert-card.processed { border-color: var(--border2); opacity: 0.7; }
-  .alert-card.processing { border-color: var(--accent); }
+      /* ── ALERT CARD ── */
+      .alert-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border-color 0.2s;
+      }
+      .alert-card:hover {
+        border-color: var(--border2);
+      }
+      .alert-card.processed {
+        border-color: var(--border2);
+        opacity: 0.7;
+      }
+      .alert-card.processing {
+        border-color: var(--accent);
+      }
 
-  .alert-header {
-    padding: 12px 14px;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    cursor: pointer;
-  }
-  .alert-icon {
-    width: 32px; height: 32px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-  .alert-icon.error { background: var(--red-dim); }
-  .alert-icon.warning { background: var(--amber-dim); }
+      .alert-header {
+        padding: 12px 14px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .alert-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .alert-icon.error {
+        background: var(--red-dim);
+      }
+      .alert-icon.warning {
+        background: var(--amber-dim);
+      }
 
-  .alert-body { flex: 1; min-width: 0; }
-  .alert-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 3px;
-  }
-  .alert-meta {
-    font-size: 11px;
-    color: var(--muted);
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-  .alert-meta .env-badge {
-    padding: 1px 6px;
-    border-radius: 3px;
-    background: var(--red-dim);
-    color: var(--red);
-    font-size: 10px;
-    font-weight: 600;
-  }
-  .alert-reaction {
-    font-size: 20px;
-    flex-shrink: 0;
-    transition: transform 0.3s;
-  }
-  .alert-reaction.pop { animation: pop 0.4s cubic-bezier(0.36,0.07,0.19,0.97); }
-  @keyframes pop {
-    0%{transform:scale(0)}
-    60%{transform:scale(1.4)}
-    100%{transform:scale(1)}
-  }
+      .alert-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .alert-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 3px;
+      }
+      .alert-meta {
+        font-size: 11px;
+        color: var(--muted);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .alert-meta .env-badge {
+        padding: 1px 6px;
+        border-radius: 3px;
+        background: var(--red-dim);
+        color: var(--red);
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .alert-reaction {
+        font-size: 20px;
+        flex-shrink: 0;
+        transition: transform 0.3s;
+      }
+      .alert-reaction.pop {
+        animation: pop 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+      }
+      @keyframes pop {
+        0% {
+          transform: scale(0);
+        }
+        60% {
+          transform: scale(1.4);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
 
-  .process-btn {
-    margin: 0 14px 12px;
-    width: calc(100% - 28px);
-    padding: 8px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    border-radius: 6px;
-    color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.02em;
-  }
-  .process-btn:hover { background: var(--accent); color: #fff; }
-  .process-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    background: var(--surface2);
-    border-color: var(--border);
-    color: var(--muted);
-  }
+      .process-btn {
+        margin: 0 14px 12px;
+        width: calc(100% - 28px);
+        padding: 8px;
+        background: var(--accent-dim);
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        color: var(--accent);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        letter-spacing: 0.02em;
+      }
+      .process-btn:hover {
+        background: var(--accent);
+        color: #fff;
+      }
+      .process-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: var(--surface2);
+        border-color: var(--border);
+        color: var(--muted);
+      }
 
-  /* ── THREAD (diplomat output) ── */
-  .alert-thread {
-    border-top: 1px solid var(--border);
-    padding: 10px 14px;
-    background: var(--surface2);
-    display: none;
-  }
-  .alert-thread.visible { display: block; }
-  .thread-msg {
-    font-size: 11px;
-    line-height: 1.6;
-    color: var(--text);
-    margin-bottom: 6px;
-  }
-  .thread-tag {
-    font-size: 10px;
-    color: var(--accent);
-    background: var(--accent-dim);
-    padding: 1px 6px;
-    border-radius: 3px;
-    display: inline-block;
-    margin: 2px 2px 2px 0;
-  }
-  .thread-escalation {
-    margin-top: 8px;
-    padding: 8px 10px;
-    background: var(--red-dim);
-    border: 1px solid var(--red);
-    border-radius: 6px;
-    font-size: 11px;
-    color: var(--red);
-    line-height: 1.5;
-  }
-  .thread-ticket {
-    margin-top: 6px;
-    font-size: 11px;
-    color: var(--teal);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+      /* ── THREAD (diplomat output) ── */
+      .alert-thread {
+        border-top: 1px solid var(--border);
+        padding: 10px 14px;
+        background: var(--surface2);
+        display: none;
+      }
+      .alert-thread.visible {
+        display: block;
+      }
+      .thread-msg {
+        font-size: 11px;
+        line-height: 1.6;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+      .thread-tag {
+        font-size: 10px;
+        color: var(--accent);
+        background: var(--accent-dim);
+        padding: 1px 6px;
+        border-radius: 3px;
+        display: inline-block;
+        margin: 2px 2px 2px 0;
+      }
+      .thread-escalation {
+        margin-top: 8px;
+        padding: 8px 10px;
+        background: var(--red-dim);
+        border: 1px solid var(--red);
+        border-radius: 6px;
+        font-size: 11px;
+        color: var(--red);
+        line-height: 1.5;
+      }
+      .thread-ticket {
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--teal);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
 
-  /* ── DETAIL PANEL ── */
-  .detail-panel {
-    background: var(--surface);
-    border-left: 1px solid var(--border);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-  .detail-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    gap: 12px;
-    color: var(--muted);
-    font-size: 12px;
-    text-align: center;
-    padding: 40px;
-  }
-  .detail-empty .big { font-size: 32px; }
+      /* ── DETAIL PANEL ── */
+      .detail-panel {
+        background: var(--surface);
+        border-left: 1px solid var(--border);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .detail-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 12px;
+        text-align: center;
+        padding: 40px;
+      }
+      .detail-empty .big {
+        font-size: 32px;
+      }
 
-  .detail-header {
-    padding: 16px;
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    background: var(--surface);
-    z-index: 5;
-  }
-  .detail-header-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    margin-bottom: 4px;
-  }
-  .detail-id {
-    font-size: 10px;
-    color: var(--muted);
-  }
+      .detail-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        background: var(--surface);
+        z-index: 5;
+      }
+      .detail-header-title {
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+      .detail-id {
+        font-size: 10px;
+        color: var(--muted);
+      }
 
-  .agent-pipeline {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .pipeline-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
+      .agent-pipeline {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .pipeline-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
 
-  .agent-step {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: border-color 0.3s;
-  }
-  .agent-step.running { border-color: var(--accent); }
-  .agent-step.done-teal { border-color: var(--teal); }
-  .agent-step.done-amber { border-color: var(--amber); }
-  .agent-step.done-red { border-color: var(--red); }
+      .agent-step {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border-color 0.3s;
+      }
+      .agent-step.running {
+        border-color: var(--accent);
+      }
+      .agent-step.done-teal {
+        border-color: var(--teal);
+      }
+      .agent-step.done-amber {
+        border-color: var(--amber);
+      }
+      .agent-step.done-red {
+        border-color: var(--red);
+      }
 
-  .agent-step-header {
-    padding: 9px 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .agent-step-header .agent-name { font-family: 'Syne', sans-serif; font-size: 13px; }
-  .agent-indicator {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--border2);
-    transition: background 0.3s;
-    flex-shrink: 0;
-  }
-  .agent-indicator.running {
-    background: var(--accent);
-    animation: pulse 0.8s ease infinite;
-  }
-  .agent-indicator.done { background: var(--teal); animation: none; }
-  .agent-indicator.done-red { background: var(--red); animation: none; }
+      .agent-step-header {
+        padding: 9px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .agent-step-header .agent-name {
+        font-family: "Syne", sans-serif;
+        font-size: 13px;
+      }
+      .agent-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--border2);
+        transition: background 0.3s;
+        flex-shrink: 0;
+      }
+      .agent-indicator.running {
+        background: var(--accent);
+        animation: pulse 0.8s ease infinite;
+      }
+      .agent-indicator.done {
+        background: var(--teal);
+        animation: none;
+      }
+      .agent-indicator.done-red {
+        background: var(--red);
+        animation: none;
+      }
 
-  .agent-step-body {
-    padding: 10px 12px;
-    background: var(--surface2);
-    border-top: 1px solid var(--border);
-    font-size: 11px;
-    line-height: 1.7;
-    display: none;
-  }
-  .agent-step-body.visible { display: block; }
+      .agent-step-body {
+        padding: 10px 12px;
+        background: var(--surface2);
+        border-top: 1px solid var(--border);
+        font-size: 11px;
+        line-height: 1.7;
+        display: none;
+      }
+      .agent-step-body.visible {
+        display: block;
+      }
 
-  .result-row {
-    display: flex;
-    gap: 8px;
-    padding: 2px 0;
-  }
-  .result-key { color: var(--muted); min-width: 110px; }
-  .result-val { color: var(--text); }
-  .result-val.highlight-teal { color: var(--teal); font-weight: 600; }
-  .result-val.highlight-red { color: var(--red); font-weight: 600; }
-  .result-val.highlight-amber { color: var(--amber); font-weight: 600; }
-  .result-val.highlight-accent { color: var(--accent); font-weight: 600; }
+      .result-row {
+        display: flex;
+        gap: 8px;
+        padding: 2px 0;
+      }
+      .result-key {
+        color: var(--muted);
+        min-width: 110px;
+      }
+      .result-val {
+        color: var(--text);
+      }
+      .result-val.highlight-teal {
+        color: var(--teal);
+        font-weight: 600;
+      }
+      .result-val.highlight-red {
+        color: var(--red);
+        font-weight: 600;
+      }
+      .result-val.highlight-amber {
+        color: var(--amber);
+        font-weight: 600;
+      }
+      .result-val.highlight-accent {
+        color: var(--accent);
+        font-weight: 600;
+      }
 
-  .confidence-bar {
-    height: 4px;
-    border-radius: 2px;
-    background: var(--border);
-    margin: 6px 0;
-    overflow: hidden;
-  }
-  .confidence-fill {
-    height: 100%;
-    border-radius: 2px;
-    background: var(--teal);
-    transition: width 0.6s ease;
-  }
+      .confidence-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border);
+        margin: 6px 0;
+        overflow: hidden;
+      }
+      .confidence-fill {
+        height: 100%;
+        border-radius: 2px;
+        background: var(--teal);
+        transition: width 0.6s ease;
+      }
 
-  .stack-preview {
-    margin-top: 8px;
-    padding: 8px;
-    background: var(--bg);
-    border-radius: 4px;
-    font-size: 10px;
-    color: var(--muted);
-    line-height: 1.6;
-    overflow: hidden;
-    max-height: 80px;
-    border: 1px solid var(--border);
-  }
+      .stack-preview {
+        margin-top: 8px;
+        padding: 8px;
+        background: var(--bg);
+        border-radius: 4px;
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.6;
+        overflow: hidden;
+        max-height: 80px;
+        border: 1px solid var(--border);
+      }
 
-  /* scenario badge */
-  .scenario-badge {
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .scenario-badge.valid_bug { background: var(--accent-dim); color: var(--accent); }
-  .scenario-badge.high_priority { background: var(--red-dim); color: var(--red); }
-  .scenario-badge.noise { background: var(--amber-dim); color: var(--amber); }
-  .scenario-badge.duplicate { background: var(--surface2); color: var(--muted); border: 1px solid var(--border2); }
+      /* scenario badge */
+      .scenario-badge {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .scenario-badge.valid_bug {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+      .scenario-badge.high_priority {
+        background: var(--red-dim);
+        color: var(--red);
+      }
+      .scenario-badge.noise {
+        background: var(--amber-dim);
+        color: var(--amber);
+      }
+      .scenario-badge.duplicate {
+        background: var(--surface2);
+        color: var(--muted);
+        border: 1px solid var(--border2);
+      }
 
-  /* loading spinner */
-  .spinner {
-    display: inline-block;
-    width: 10px; height: 10px;
-    border: 2px solid var(--border2);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    margin-right: 6px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+      /* loading spinner */
+      .spinner {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border: 2px solid var(--border2);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        margin-right: 6px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
 
-  /* scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-</style>
-</head>
-<body>
+      /* scrollbar */
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 2px;
+      }
+      .tab-btn {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        padding: 4px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .tab-btn:hover {
+        color: var(--text);
+        border-color: var(--border2);
+      }
+      .tab-btn.active {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: var(--accent-dim);
+      }
 
-<!-- TOPBAR -->
-<header class="topbar">
-  <div class="topbar-logo">
-    <div class="dot"></div>
-    Sentry Agent
-  </div>
-  <span class="topbar-channel"># sentry-alerts</span>
-  <div class="topbar-status" id="global-status">Agent online</div>
-</header>
+      .jira-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+      .jira-table th {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted);
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-size: 10px;
+      }
+      .jira-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .jira-table tr:hover td {
+        background: var(--surface2);
+      }
+      .jira-key {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .jira-status {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+      }
+      .jira-status.grooming {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+      .jira-status.selected {
+        background: var(--teal-dim);
+        color: var(--teal);
+      }
+      .jira-status.on_prod {
+        background: var(--red-dim);
+        color: var(--red);
+      }
+      .jira-status.closed {
+        background: var(--surface2);
+        color: var(--muted);
+        border: 1px solid var(--border2);
+      }
+      .jira-priority-high {
+        color: var(--red);
+      }
+      .jira-priority-medium {
+        color: var(--amber);
+      }
+      .jira-priority-low {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-logo">
+        <div class="dot"></div>
+        Sentry Agent
+      </div>
+      <button
+        class="tab-btn active"
+        id="tab-alerts"
+        onclick="switchTab('alerts')"
+      >
+        Alerts
+      </button>
+      <button class="tab-btn" id="tab-jira" onclick="switchTab('jira')">
+        Jira Tickets
+      </button>
+    </header>
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div class="sidebar-section">
-    <div class="sidebar-label">Channels</div>
-    <div class="sidebar-item active">
-      <span>#</span> sentry-alerts
-      <span class="badge" id="pending-badge">4</span>
-    </div>
-    <div class="sidebar-item"><span>#</span> general</div>
-    <div class="sidebar-item"><span>#</span> engineering</div>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Teams</div>
-    <div class="sidebar-item"><div class="team-dot" style="background:#5c6fff"></div>Megazord</div>
-    <div class="sidebar-item"><div class="team-dot" style="background:#00c4a0"></div>Poggers</div>
-    <div class="sidebar-item"><div class="team-dot" style="background:#f5a623"></div>Stack Troopers</div>
-    <div class="sidebar-item"><div class="team-dot" style="background:#ff4f4f"></div>DevOps</div>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Today's stats</div>
-    <div class="stat-block">
-      <div class="stat-row"><span>Processed</span><span id="stat-processed">0</span></div>
-      <div class="stat-row"><span>Tickets created</span><span id="stat-tickets">0</span></div>
-      <div class="stat-row"><span>Archived</span><span id="stat-archived">0</span></div>
-      <div class="stat-row"><span>Escalated</span><span id="stat-escalated">0</span></div>
-      <div class="stat-row"><span>Noise</span><span id="stat-noise">0</span></div>
-    </div>
-  </div>
-</aside>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Channels</div>
+        <div class="sidebar-item active">
+          <span>#</span> sentry-alerts
+          <span class="badge" id="pending-badge">4</span>
+        </div>
+        <div class="sidebar-item"><span>#</span> general</div>
+        <div class="sidebar-item"><span>#</span> engineering</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Teams</div>
+        <div class="sidebar-item">
+          <div class="team-dot" style="background: #5c6fff"></div>
+          Megazord
+        </div>
+        <div class="sidebar-item">
+          <div class="team-dot" style="background: #00c4a0"></div>
+          Poggers
+        </div>
+        <div class="sidebar-item">
+          <div class="team-dot" style="background: #f5a623"></div>
+          Stack Troopers
+        </div>
+        <div class="sidebar-item">
+          <div class="team-dot" style="background: #ff4f4f"></div>
+          DevOps
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Today's stats</div>
+        <div class="stat-block">
+          <div class="stat-row">
+            <span>Processed</span><span id="stat-processed">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Tickets created</span><span id="stat-tickets">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Archived</span><span id="stat-archived">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Escalated</span><span id="stat-escalated">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Noise</span><span id="stat-noise">0</span>
+          </div>
+        </div>
+      </div>
+    </aside>
 
-<!-- FEED -->
-<main class="feed">
-  <div class="feed-header">
-    <div class="feed-title"># sentry-alerts</div>
-    <div class="feed-count" id="feed-count">4 alerts pending</div>
-    <button class="reset-btn" onclick="resetAll()">↺ reset</button>
-  </div>
-  <div class="alerts-list" id="alerts-list">
-    <div style="text-align:center;padding:40px;color:var(--muted);font-size:12px;">
-      <div class="spinner"></div> Loading alerts...
-    </div>
-  </div>
-</main>
+    <!-- FEED -->
+    <main class="feed">
+      <div class="feed-header">
+        <div class="feed-title"># sentry-alerts</div>
+        <div class="feed-count" id="feed-count">4 alerts pending</div>
+        <button class="reset-btn" onclick="resetAll()">↺ reset</button>
+      </div>
+      <div id="view-alerts">
+        <div class="alerts-list" id="alerts-list">
+          <div
+            style="
+              text-align: center;
+              padding: 40px;
+              color: var(--muted);
+              font-size: 12px;
+            "
+          >
+            <div class="spinner"></div>
+            Loading alerts...
+          </div>
+        </div>
+      </div>
+      <div id="view-jira" style="display: none; padding: 16px">
+        <table class="jira-table">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Summary</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Assignee</th>
+            </tr>
+          </thead>
+          <tbody id="jira-tbody"></tbody>
+        </table>
+      </div>
+    </main>
 
-<!-- DETAIL PANEL -->
-<aside class="detail-panel" id="detail-panel">
-  <div class="detail-empty" id="detail-empty">
-    <div class="big">🤖</div>
-    <div>Click <strong>Triage</strong> on an alert<br>to see the agents work</div>
-  </div>
-  <div id="detail-content" style="display:none;">
-    <div class="detail-header">
-      <div class="detail-header-title" id="detail-title">—</div>
-      <div class="detail-id" id="detail-id">—</div>
-    </div>
-    <div class="agent-pipeline" id="agent-pipeline"></div>
-  </div>
-</aside>
+    <!-- DETAIL PANEL -->
+    <aside class="detail-panel" id="detail-panel">
+      <div class="detail-empty" id="detail-empty">
+        <div class="big">🤖</div>
+        <div>
+          Click <strong>Triage</strong> on an alert<br />to see the agents work
+        </div>
+      </div>
+      <div id="detail-content" style="display: none">
+        <div class="detail-header">
+          <div class="detail-header-title" id="detail-title">—</div>
+          <div class="detail-id" id="detail-id">—</div>
+        </div>
+        <div class="agent-pipeline" id="agent-pipeline"></div>
+      </div>
+    </aside>
 
-<script>
-const stats = { processed: 0, tickets: 0, archived: 0, escalated: 0, noise: 0 };
-let alerts = [];
-let processedIds = new Set();
+    <script>
+      const stats = {
+        processed: 0,
+        tickets: 0,
+        archived: 0,
+        escalated: 0,
+        noise: 0,
+      };
+      let alerts = [];
+      let processedIds = new Set();
 
-const scenarioLabels = {
-  valid_bug: 'Valid Bug',
-  high_priority: 'High Priority',
-  noise: 'Noise / Infra',
-  duplicate: 'Duplicate'
-};
+      const scenarioLabels = {
+        valid_bug: "Valid Bug",
+        high_priority: "High Priority",
+        noise: "Noise / Infra",
+        duplicate: "Duplicate",
+      };
 
-const scenarioIcons = {
-  valid_bug: '🐛',
-  high_priority: '🔥',
-  noise: '📡',
-  duplicate: '🔁'
-};
+      const scenarioIcons = {
+        valid_bug: "🐛",
+        high_priority: "🔥",
+        noise: "📡",
+        duplicate: "🔁",
+      };
 
-async function loadAlerts() {
-  const res = await fetch('/api/alerts');
-  alerts = await res.json();
-  renderAlerts();
-}
+      async function loadAlerts() {
+        const res = await fetch("/api/alerts");
+        alerts = await res.json();
+        renderAlerts();
+      }
 
-function renderAlerts() {
-  const list = document.getElementById('alerts-list');
-  list.innerHTML = '';
-  alerts.forEach(alert => {
-    const card = createAlertCard(alert);
-    list.appendChild(card);
-  });
-  updateFeedCount();
-}
+      function renderAlerts() {
+        const list = document.getElementById("alerts-list");
+        list.innerHTML = "";
+        alerts.forEach((alert) => {
+          const card = createAlertCard(alert);
+          list.appendChild(card);
+        });
+        updateFeedCount();
+      }
 
-function createAlertCard(alert) {
-  const card = document.createElement('div');
-  card.className = 'alert-card' + (processedIds.has(alert.id) ? ' processed' : '');
-  card.id = `card-${alert.id}`;
+      function createAlertCard(alert) {
+        const card = document.createElement("div");
+        card.className =
+          "alert-card" + (processedIds.has(alert.id) ? " processed" : "");
+        card.id = `card-${alert.id}`;
 
-  const isWarning = alert.level === 'warning';
+        const isWarning = alert.level === "warning";
 
-  card.innerHTML = `
+        card.innerHTML = `
     <div class="alert-header" onclick="selectAlert('${alert.id}')">
-      <div class="alert-icon ${isWarning ? 'warning' : 'error'}">${scenarioIcons[alert.scenario]}</div>
+      <div class="alert-icon ${isWarning ? "warning" : "error"}">${scenarioIcons[alert.scenario]}</div>
       <div class="alert-body">
         <div class="alert-title">${alert.title}</div>
         <div class="alert-meta">
@@ -636,205 +903,259 @@ function createAlertCard(alert) {
     </div>
     <button class="process-btn" id="btn-${alert.id}"
       onclick="processAlert('${alert.id}')"
-      ${processedIds.has(alert.id) ? 'disabled' : ''}>
-      ${processedIds.has(alert.id) ? '✓ processed' : '→ triage this alert'}
+      ${processedIds.has(alert.id) ? "disabled" : ""}>
+      ${processedIds.has(alert.id) ? "✓ processed" : "→ triage this alert"}
     </button>
     <div class="alert-thread" id="thread-${alert.id}"></div>
   `;
-  return card;
-}
+        return card;
+      }
 
-async function processAlert(alertId) {
-  const btn = document.getElementById(`btn-${alertId}`);
-  const card = document.getElementById(`card-${alertId}`);
-  const alert = alerts.find(a => a.id === alertId);
+      async function processAlert(alertId) {
+        const btn = document.getElementById(`btn-${alertId}`);
+        const card = document.getElementById(`card-${alertId}`);
+        const alert = alerts.find((a) => a.id === alertId);
 
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>agents running...';
-  card.className = 'alert-card processing';
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>agents running...';
+        card.className = "alert-card processing";
 
-  showDetailPanel(alert);
-  showAgentPipeline(alertId, 'running', null);
+        showDetailPanel(alert);
+        showAgentPipeline(alertId, "running", null);
 
-  try {
-    const res = await fetch(`/api/alerts/${alertId}/process`, { method: 'POST' });
-    const result = await res.json();
+        try {
+          const res = await fetch(`/api/alerts/${alertId}/process`, {
+            method: "POST",
+          });
+          const result = await res.json();
 
-    processedIds.add(alertId);
-    card.className = 'alert-card processed';
-    btn.innerHTML = '✓ processed';
+          processedIds.add(alertId);
+          card.className = "alert-card processed";
+          btn.innerHTML = "✓ processed";
 
-    showAgentPipeline(alertId, 'done', result);
-    showThread(alertId, result.slack_mock);
-    showReaction(alertId, result.slack_mock.reaction);
-    updateStats(result.slack_mock);
+          showAgentPipeline(alertId, "done", result);
+          showThread(alertId, result.slack_mock);
+          showReaction(alertId, result.slack_mock.reaction);
+          updateStats(result.slack_mock);
 
-    document.getElementById('global-status').textContent = 'Agent online';
-  } catch (e) {
-    btn.innerHTML = '⚠ error — retry';
-    btn.disabled = false;
-    card.className = 'alert-card';
-    document.getElementById('global-status').textContent = '⚠ API error';
-  }
-  updateFeedCount();
-}
+          document.getElementById("global-status").textContent = "Agent online";
+        } catch (e) {
+          btn.innerHTML = "⚠ error — retry";
+          btn.disabled = false;
+          card.className = "alert-card";
+          document.getElementById("global-status").textContent = "⚠ API error";
+        }
+        updateFeedCount();
+      }
 
-function showDetailPanel(alert) {
-  document.getElementById('detail-empty').style.display = 'none';
-  document.getElementById('detail-content').style.display = 'block';
-  document.getElementById('detail-title').textContent = alert.title;
-  document.getElementById('detail-id').textContent = `${alert.id} · ${alert.url_path}`;
-  document.getElementById('agent-pipeline').innerHTML = `
+      function showDetailPanel(alert) {
+        document.getElementById("detail-empty").style.display = "none";
+        document.getElementById("detail-content").style.display = "block";
+        document.getElementById("detail-title").textContent = alert.title;
+        document.getElementById("detail-id").textContent =
+          `${alert.id} · ${alert.url_path}`;
+        document.getElementById("agent-pipeline").innerHTML = `
     <div class="pipeline-label">Agent pipeline</div>
-    ${buildAgentStep('gatekeeper', 'Gatekeeper', 'running', null, alert)}
-    ${buildAgentStep('architect', 'Architect', 'waiting', null, null)}
-    ${buildAgentStep('diplomat', 'Diplomat', 'waiting', null, null)}
-    <div class="stack-preview">${alert.stack_trace.replace(/\n/g, '<br>')}</div>
+    ${buildAgentStep("gatekeeper", "Gatekeeper", "running", null, alert)}
+    ${buildAgentStep("architect", "Architect", "waiting", null, null)}
+    ${buildAgentStep("diplomat", "Diplomat", "waiting", null, null)}
+    <div class="stack-preview">${alert.stack_trace.replace(/\n/g, "<br>")}</div>
   `;
-}
+      }
 
-function buildAgentStep(id, name, status, result, alert) {
-  const icons = { Gatekeeper: '🔍', Architect: '🏗️', Diplomat: '💬' };
-  return `
-    <div class="agent-step ${status === 'running' ? 'running' : ''}" id="step-${id}">
+      function buildAgentStep(id, name, status, result, alert) {
+        const icons = { Gatekeeper: "🔍", Architect: "🏗️", Diplomat: "💬" };
+        return `
+    <div class="agent-step ${status === "running" ? "running" : ""}" id="step-${id}">
       <div class="agent-step-header">
-        <div class="agent-indicator ${status === 'running' ? 'running' : ''}" id="ind-${id}"></div>
+        <div class="agent-indicator ${status === "running" ? "running" : ""}" id="ind-${id}"></div>
         <div class="agent-name">${icons[name]} ${name}</div>
         <span style="margin-left:auto;font-size:10px;color:var(--muted)" id="step-status-${id}">
-          ${status === 'running' ? '<span class="spinner"></span>running' : status === 'waiting' ? 'waiting' : ''}
+          ${status === "running" ? '<span class="spinner"></span>running' : status === "waiting" ? "waiting" : ""}
         </span>
       </div>
       <div class="agent-step-body" id="body-${id}"></div>
     </div>
   `;
-}
+      }
 
-function showAgentPipeline(alertId, phase, result) {
-  if (phase === 'done' && result) {
-    const steps = result.steps;
-    steps.forEach((step, i) => {
-      const key = step.agent.toLowerCase();
-      const el = document.getElementById(`step-${key}`);
-      const ind = document.getElementById(`ind-${key}`);
-      const statusEl = document.getElementById(`step-status-${key}`);
-      const body = document.getElementById(`body-${key}`);
+      function showAgentPipeline(alertId, phase, result) {
+        if (phase === "done" && result) {
+          const steps = result.steps;
+          steps.forEach((step, i) => {
+            const key = step.agent.toLowerCase();
+            const el = document.getElementById(`step-${key}`);
+            const ind = document.getElementById(`ind-${key}`);
+            const statusEl = document.getElementById(`step-status-${key}`);
+            const body = document.getElementById(`body-${key}`);
 
-      if (!el) return;
+            if (!el) return;
 
-      ind.className = 'agent-indicator done';
-      statusEl.innerHTML = '✓ done';
+            ind.className = "agent-indicator done";
+            statusEl.innerHTML = "✓ done";
 
-      const colors = ['done-teal', 'done-amber', 'done-teal'];
-      el.className = `agent-step ${colors[i]}`;
+            const colors = ["done-teal", "done-amber", "done-teal"];
+            el.className = `agent-step ${colors[i]}`;
 
-      body.innerHTML = renderStepResult(step.agent, step.result);
-      body.classList.add('visible');
-    });
-  }
-}
+            body.innerHTML = renderStepResult(step.agent, step.result);
+            body.classList.add("visible");
+          });
+        }
+      }
 
-function renderStepResult(agent, result) {
-  if (!result) return '';
-  if (result.error) return `<div style="color:var(--red)">${result.error}</div>`;
+      function renderStepResult(agent, result) {
+        if (!result) return "";
+        if (result.error)
+          return `<div style="color:var(--red)">${result.error}</div>`;
 
-  if (agent === 'Gatekeeper') {
-    const conf = Math.round(result.confidence * 100);
-    const confColor = conf > 80 ? 'highlight-teal' : conf > 60 ? 'highlight-amber' : 'highlight-red';
-    return `
+        if (agent === "Gatekeeper") {
+          const conf = Math.round(result.confidence * 100);
+          const confColor =
+            conf > 80
+              ? "highlight-teal"
+              : conf > 60
+                ? "highlight-amber"
+                : "highlight-red";
+          return `
       <div class="result-row"><span class="result-key">classification</span><span class="result-val highlight-accent">${result.classification}</span></div>
       <div class="result-row"><span class="result-key">confidence</span><span class="result-val ${confColor}">${conf}%</span></div>
       <div class="confidence-bar"><div class="confidence-fill" style="width:${conf}%"></div></div>
-      <div class="result-row"><span class="result-key">high priority</span><span class="result-val ${result.is_high_priority ? 'highlight-red' : ''}">${result.is_high_priority ? 'YES' : 'no'}</span></div>
+      <div class="result-row"><span class="result-key">high priority</span><span class="result-val ${result.is_high_priority ? "highlight-red" : ""}">${result.is_high_priority ? "YES" : "no"}</span></div>
       <div class="result-row" style="margin-top:4px"><span class="result-key">reasoning</span></div>
       <div style="font-size:10px;color:var(--text);line-height:1.6;margin-top:2px;padding:6px;background:var(--bg);border-radius:4px">${result.reasoning}</div>
     `;
-  }
-  if (agent === 'Architect') {
-    return `
+        }
+        if (agent === "Architect") {
+          return `
       <div class="result-row"><span class="result-key">action</span><span class="result-val highlight-accent">${result.action}</span></div>
       <div class="result-row"><span class="result-key">team</span><span class="result-val highlight-teal">${result.team}</span></div>
       <div class="result-row"><span class="result-key">slack handle</span><span class="result-val">${result.team_slack_handle}</span></div>
-      ${result.jira_ticket_key ? `<div class="result-row"><span class="result-key">jira ticket</span><span class="result-val highlight-amber">${result.jira_ticket_key}</span></div>` : ''}
+      ${result.jira_ticket_key ? `<div class="result-row"><span class="result-key">jira ticket</span><span class="result-val highlight-amber">${result.jira_ticket_key}</span></div>` : ""}
       <div class="result-row"><span class="result-key">triage owner</span><span class="result-val">${result.triage_owner}</span></div>
     `;
-  }
-  if (agent === 'Diplomat') {
-    return `
+        }
+        if (agent === "Diplomat") {
+          return `
       <div class="result-row"><span class="result-key">reaction</span><span class="result-val" style="font-size:16px">${result.emoji}</span></div>
       <div style="font-size:10px;color:var(--text);line-height:1.6;margin-top:4px;padding:6px;background:var(--bg);border-radius:4px">${result.thread_message}</div>
-      ${result.escalation_targets.length ? `<div style="margin-top:6px">${result.escalation_targets.map(t => `<span class="thread-tag">${t}</span>`).join('')}</div>` : ''}
+      ${result.escalation_targets.length ? `<div style="margin-top:6px">${result.escalation_targets.map((t) => `<span class="thread-tag">${t}</span>`).join("")}</div>` : ""}
     `;
-  }
-  return '';
-}
+        }
+        return "";
+      }
 
-function showThread(alertId, slack) {
-  const thread = document.getElementById(`thread-${alertId}`);
-  if (!slack) return;
+      function showThread(alertId, slack) {
+        const thread = document.getElementById(`thread-${alertId}`);
+        if (!slack) return;
 
-  let html = `<div class="thread-msg">🤖 <strong>Sentry Agent</strong> — ${slack.thread_message || ''}</div>`;
+        let html = `<div class="thread-msg">🤖 <strong>Sentry Agent</strong> — ${slack.thread_message || ""}</div>`;
 
-  if (slack.ticket) {
-    html += `<div class="thread-ticket">🎫 <span style="color:var(--amber)">${slack.ticket}</span> created in Jira</div>`;
-  }
+        if (slack.ticket) {
+          html += `<div class="thread-ticket">🎫 <span style="color:var(--amber)">${slack.ticket}</span> created in Jira</div>`;
+        }
 
-  if (slack.escalation_targets && slack.escalation_targets.length) {
-    html += `<div class="thread-escalation">🚨 <strong>Escalation:</strong> ${slack.escalation_message || ''}<br>${slack.escalation_targets.map(t => `<span class="thread-tag">${t}</span>`).join('')}</div>`;
-  }
+        if (slack.escalation_targets && slack.escalation_targets.length) {
+          html += `<div class="thread-escalation">🚨 <strong>Escalation:</strong> ${slack.escalation_message || ""}<br>${slack.escalation_targets.map((t) => `<span class="thread-tag">${t}</span>`).join("")}</div>`;
+        }
 
-  thread.innerHTML = html;
-  thread.classList.add('visible');
-}
+        thread.innerHTML = html;
+        thread.classList.add("visible");
+      }
 
-function showReaction(alertId, emoji) {
-  const el = document.getElementById(`reaction-${alertId}`);
-  if (emoji) {
-    el.textContent = emoji;
-    el.classList.add('pop');
-  }
-}
+      function showReaction(alertId, emoji) {
+        const el = document.getElementById(`reaction-${alertId}`);
+        if (emoji) {
+          el.textContent = emoji;
+          el.classList.add("pop");
+        }
+      }
 
-function selectAlert(alertId) {
-  const alert = alerts.find(a => a.id === alertId);
-  if (!alert) return;
-  if (!processedIds.has(alertId)) {
-    showDetailPanel(alert);
-  }
-}
+      function selectAlert(alertId) {
+        const alert = alerts.find((a) => a.id === alertId);
+        if (!alert) return;
+        if (!processedIds.has(alertId)) {
+          showDetailPanel(alert);
+        }
+      }
 
-function updateStats(slack) {
-  stats.processed++;
-  if (slack.action === 'create_ticket') stats.tickets++;
-  if (slack.action === 'archive') stats.archived++;
-  if (slack.escalation_targets && slack.escalation_targets.length) stats.escalated++;
-  if (slack.action === 'resolve') stats.noise++;
+      function updateStats(slack) {
+        stats.processed++;
+        if (slack.action === "create_ticket") stats.tickets++;
+        if (slack.action === "archive") stats.archived++;
+        if (slack.escalation_targets && slack.escalation_targets.length)
+          stats.escalated++;
+        if (slack.action === "resolve") stats.noise++;
 
-  document.getElementById('stat-processed').textContent = stats.processed;
-  document.getElementById('stat-tickets').textContent = stats.tickets;
-  document.getElementById('stat-archived').textContent = stats.archived;
-  document.getElementById('stat-escalated').textContent = stats.escalated;
-  document.getElementById('stat-noise').textContent = stats.noise;
-}
+        document.getElementById("stat-processed").textContent = stats.processed;
+        document.getElementById("stat-tickets").textContent = stats.tickets;
+        document.getElementById("stat-archived").textContent = stats.archived;
+        document.getElementById("stat-escalated").textContent = stats.escalated;
+        document.getElementById("stat-noise").textContent = stats.noise;
+      }
 
-function updateFeedCount() {
-  const pending = alerts.length - processedIds.size;
-  document.getElementById('feed-count').textContent = `${pending} alert${pending !== 1 ? 's' : ''} pending`;
-  document.getElementById('pending-badge').textContent = pending > 0 ? pending : '';
-  document.getElementById('pending-badge').style.display = pending > 0 ? '' : 'none';
-}
+      function updateFeedCount() {
+        const pending = alerts.length - processedIds.size;
+        document.getElementById("feed-count").textContent =
+          `${pending} alert${pending !== 1 ? "s" : ""} pending`;
+        document.getElementById("pending-badge").textContent =
+          pending > 0 ? pending : "";
+        document.getElementById("pending-badge").style.display =
+          pending > 0 ? "" : "none";
+      }
 
-function resetAll() {
-  processedIds.clear();
-  Object.keys(stats).forEach(k => stats[k] = 0);
-  ['processed','tickets','archived','escalated','noise'].forEach(k => {
-    document.getElementById(`stat-${k}`).textContent = '0';
-  });
-  document.getElementById('detail-empty').style.display = '';
-  document.getElementById('detail-content').style.display = 'none';
-  renderAlerts();
-}
+      function resetAll() {
+        processedIds.clear();
+        Object.keys(stats).forEach((k) => (stats[k] = 0));
+        ["processed", "tickets", "archived", "escalated", "noise"].forEach(
+          (k) => {
+            document.getElementById(`stat-${k}`).textContent = "0";
+          },
+        );
+        document.getElementById("detail-empty").style.display = "";
+        document.getElementById("detail-content").style.display = "none";
+        renderAlerts();
+      }
 
-loadAlerts();
-</script>
-</body>
+      async function switchTab(tab) {
+        document
+          .getElementById("tab-alerts")
+          .classList.toggle("active", tab === "alerts");
+        document
+          .getElementById("tab-jira")
+          .classList.toggle("active", tab === "jira");
+        document.getElementById("view-alerts").style.display =
+          tab === "alerts" ? "" : "none";
+        document.getElementById("view-jira").style.display =
+          tab === "jira" ? "" : "none";
+        if (tab === "jira") await loadJiraTickets();
+      }
+
+      async function loadJiraTickets() {
+        const res = await fetch("/api/jira/tickets");
+        const tickets = await res.json();
+        const tbody = document.getElementById("jira-tbody");
+        tbody.innerHTML = tickets
+          .map((t) => {
+            const statusKey = t.status.toLowerCase().replace(" ", "_");
+            const priorityClass =
+              t.priority === "Highest" || t.priority === "High"
+                ? "jira-priority-high"
+                : t.priority === "Medium"
+                  ? "jira-priority-medium"
+                  : "jira-priority-low";
+            return `
+      <tr>
+        <td class="jira-key">${t.key}</td>
+        <td style="max-width:280px">${t.summary}</td>
+        <td><span class="jira-status ${statusKey}">${t.status}</span></td>
+        <td class="${priorityClass}">${t.priority}</td>
+        <td style="color:var(--muted)">${t.assignee || "—"}</td>
+      </tr>`;
+          })
+          .join("");
+      }
+
+      loadAlerts();
+    </script>
+  </body>
 </html>
