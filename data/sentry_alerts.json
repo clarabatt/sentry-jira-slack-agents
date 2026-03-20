@@ -1,0 +1,58 @@
+[
+  {
+    "id": "SENTRY-001",
+    "title": "TypeError: Cannot read properties of null (reading 'metric_id')",
+    "culprit": "novisto/metrics/v1/metrics.py in get_metric_definition",
+    "level": "error",
+    "status": "unresolved",
+    "url_path": "/metrics/v1/metrics/{metric_id}",
+    "stack_trace": "TypeError: Cannot read properties of null (reading 'metric_id')\n  at get_metric_definition (novisto/metrics/v1/metrics.py:142)\n  at MetricService.fetch (novisto/services/metric_service.py:89)\n  at APIHandler.handle (novisto/api/handler.py:34)",
+    "environment": "production",
+    "times_seen": 47,
+    "first_seen": "2026-03-18T10:22:00Z",
+    "last_seen": "2026-03-20T09:15:00Z",
+    "scenario": "valid_bug"
+  },
+  {
+    "id": "SENTRY-002",
+    "title": "ForeignKeyViolationError: insert or update on table data_requests violates foreign key constraint",
+    "culprit": "novisto/data_requests/v2/crud.py in create_data_request",
+    "level": "error",
+    "status": "unresolved",
+    "url_path": "/data_requests/v2/data_requests",
+    "stack_trace": "ForeignKeyViolationError: insert or update on table \"data_requests\" violates foreign key constraint \"data_requests_org_id_fkey\"\n  at create_data_request (novisto/data_requests/v2/crud.py:201)\n  at DataRequestService.create (novisto/services/dr_service.py:55)",
+    "environment": "production",
+    "times_seen": 312,
+    "first_seen": "2026-03-10T08:00:00Z",
+    "last_seen": "2026-03-20T09:18:00Z",
+    "scenario": "high_priority"
+  },
+  {
+    "id": "SENTRY-003",
+    "title": "RemoteProtocolError: peer closed connection without sending complete message body",
+    "culprit": "httpcore/_sync/connection.py in receive_response",
+    "level": "warning",
+    "status": "unresolved",
+    "url_path": "/metrics/v1/metrics",
+    "stack_trace": "RemoteProtocolError: peer closed connection without sending complete message body\n  at receive_response (httpcore/_sync/connection.py:112)\n  at httpx/_client.py:892\n  [deploy: novisto-platform-worker-v2.3.1]",
+    "environment": "production",
+    "times_seen": 8,
+    "first_seen": "2026-03-20T08:55:00Z",
+    "last_seen": "2026-03-20T09:05:00Z",
+    "scenario": "noise"
+  },
+  {
+    "id": "SENTRY-004",
+    "title": "AttributeError: 'NoneType' object has no attribute 'taxonomy_id'",
+    "culprit": "novisto/taxonomies/v1/service.py in get_taxonomy_leaves",
+    "level": "error",
+    "status": "unresolved",
+    "url_path": "/taxonomies/v1/taxonomy/{id}/leaves",
+    "stack_trace": "AttributeError: 'NoneType' object has no attribute 'taxonomy_id'\n  at get_taxonomy_leaves (novisto/taxonomies/v1/service.py:88)\n  at TaxonomyService.resolve (novisto/services/taxonomy_service.py:44)",
+    "environment": "production",
+    "times_seen": 23,
+    "first_seen": "2026-03-19T14:00:00Z",
+    "last_seen": "2026-03-20T09:10:00Z",
+    "scenario": "duplicate"
+  }
+]

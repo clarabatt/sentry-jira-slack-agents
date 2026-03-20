@@ -1,0 +1,43 @@
+triage_rotation:
+  current_owner: "@taylor.swift"
+  current_week: "2026-W12"
+
+teams:
+  - name: "Megazord"
+    slack_handle: "@team-megazord"
+    leads:
+      - "@celine.dion"
+      - "@freddie.mercury"
+    patterns:
+      - "/metrics/v1/"
+      - "/taxonomies/v1/"
+      - "/indicators/v1/"
+
+  - name: "Poggers"
+    slack_handle: "@team-poggers"
+    leads:
+      - "@lady.gaga"
+      - "@sabrina.carpenter"
+    patterns:
+      - "/data_requests/"
+      - "/data_request_indicators/"
+      - "/data_request_collabs/"
+
+  - name: "Stack Troopers"
+    slack_handle: "@team-stack-troopers"
+    leads:
+      - "@kendrick.lamar"
+      - "@chappell.roan"
+    patterns:
+      - "/indicators/v1/"
+      - "/business_units/"
+      - "/orgs/v1/"
+
+  - name: "DevOps"
+    slack_handle: "@devops"
+    leads:
+      - "@bad.bunny"
+      - "@billy.eilish"
+    patterns:
+      - "/health"
+      - "/deploy"
