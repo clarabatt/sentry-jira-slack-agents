@@ -9,6 +9,7 @@ app = FastAPI(
     description="Multi-agent system for automated Sentry triage",
     version="0.1.0",
 )
+BASE_DIR = Path(__file__).resolve().parent
 
 app.include_router(alerts_router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -16,4 +17,5 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", include_in_schema=False)
 async def serve_ui():
-    return FileResponse("static/index.html")
+    index_path = BASE_DIR / "static" / "index.html"
+    return FileResponse(index_path)
