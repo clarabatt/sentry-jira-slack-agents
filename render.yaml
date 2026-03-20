@@ -1,7 +1,7 @@
 services:
   - type: web
     name: sentry-jira-slack-agents
-    env: python
-    runtime: python-3.13.12
+    runtime: python
+    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
