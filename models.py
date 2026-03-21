@@ -2,6 +2,12 @@ from pydantic import BaseModel
 from typing import Optional
 from enum import Enum
 
+class Classification(str, Enum):
+    duplicate = "duplicate"
+    valid_bug = "valid_bug"
+    noise = "noise"
+    high_priority = "high_priority"
+    error = "gatekeeper_error"
 
 class AlertScenario(str, Enum):
     valid_bug = "valid_bug"
@@ -9,6 +15,19 @@ class AlertScenario(str, Enum):
     noise = "noise"
     duplicate = "duplicate"
 
+class Action(str, Enum):
+    create_ticket = "create_ticket"
+    archive = "archive"
+    resolve = "resolve"
+    manual_triage = "manual_triage"
+    escalate = "escalate"
+    system_failure = "system_failure"
+
+class Priority(str, Enum):
+    highest = "Highest"
+    high = "High"
+    medium = "Medium"
+    low = "Low"
 
 class SentryAlert(BaseModel):
     id: str
@@ -30,7 +49,7 @@ class JiraTicket(BaseModel):
     key: str
     summary: str
     status: str
-    priority: str
+    priority: Priority
     assignee: Optional[str]
     sentry_issue_id: Optional[str]
     url_path: str
@@ -38,7 +57,7 @@ class JiraTicket(BaseModel):
 
 
 class GatekeeperDecision(BaseModel):
-    classification: str          # "valid_bug" | "noise" | "duplicate" | "high_priority"
+    classification: Classification
     confidence: float            # 0.0 - 1.0
     reasoning: str
     is_high_priority: bool
@@ -49,7 +68,7 @@ class ArchitectDecision(BaseModel):
     team: str
     team_slack_handle: str
     leads: list[str]
-    action: str                  # "create_ticket" | "archive" | "resolve"
+    action: Action
     jira_ticket_key: Optional[str] = None
     triage_owner: str
 

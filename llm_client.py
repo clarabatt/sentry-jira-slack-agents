@@ -24,47 +24,6 @@ def _parse_json(text: str) -> dict:
     return json.loads(text.strip())
 
 
-async def gatekeeper_classify(alert: dict, existing_ticket_id: str | None) -> GatekeeperDecision:
-    client = get_client()
-
-    existing_info = (
-        f"A Jira ticket already exists for this issue: {existing_ticket_id}"
-        if existing_ticket_id
-        else "No existing Jira ticket found for this issue."
-    )
-
-    prompt = f"""You are a Sentry triage Gatekeeper. Analyze this alert and classify it.
-
-ALERT:
-Title: {alert['title']}
-URL Path: {alert['url_path']}
-Stack Trace: {alert['stack_trace']}
-Environment: {alert['environment']}
-Times Seen: {alert['times_seen']}
-Level: {alert['level']}
-
-{existing_info}
-
-Classify this alert as one of:
-- "duplicate": ticket already exists in Jira
-- "noise": infra/deploy issue, not actionable (e.g. RemoteProtocolError during deploy, connection resets)
-- "high_priority": critical production issue (ForeignKeyViolation on critical tables, DiskFullError, 500 spikes)
-- "valid_bug": real bug that needs a ticket
-
-Respond ONLY with valid JSON (no markdown, no explanation):
-{{
-  "classification": "valid_bug|noise|duplicate|high_priority",
-  "confidence": 0.0-1.0,
-  "reasoning": "brief explanation in 1-2 sentences",
-  "is_high_priority": true|false
-}}"""
-
-    response = client.generate_content(prompt)
-    data = _parse_json(response.text)
-    data["existing_ticket_id"] = existing_ticket_id
-    return GatekeeperDecision(**data)
-
-
 async def diplomat_compose(action: str, team: str, ticket_key: str | None, reasoning: str, alert_title: str) -> DiplomatAction:
     client = get_client()
 

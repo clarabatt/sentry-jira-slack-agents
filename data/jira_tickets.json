@@ -31,16 +31,5 @@
     "sentry_issue_id": "SENTRY-002",
     "url_path": "/data_requests/v2/data_requests",
     "created_at": "2026-03-20T09:30:00Z"
-  },
-  {
-    "id": "NF-21925",
-    "key": "NF-21925",
-    "summary": "[Sentry] TypeError: Cannot read properties of null (reading 'metric_id')",
-    "status": "GROOMING",
-    "priority": "Highest",
-    "assignee": null,
-    "sentry_issue_id": "SENTRY-001",
-    "url_path": "/metrics/v1/metrics/{metric_id}",
-    "created_at": "2026-03-20T09:30:00Z"
   }
 ]

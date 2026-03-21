@@ -1,24 +1,37 @@
-from models import (
-    AgentContext, GatekeeperDecision, ArchitectDecision,
-    DiplomatAction, SentryAlert
-)
-from mock_db import (
-    find_jira_ticket_by_sentry_id, find_jira_ticket_by_path,
-    create_jira_ticket
-)
-from domain_map import lookup_team, get_triage_owner
-from llm_client import gatekeeper_classify, diplomat_compose
-from config import get_settings
+import traceback
 
+import logging
+
+from models import (
+    Action, Classification, GatekeeperDecision, ArchitectDecision,
+    DiplomatAction, Priority, SentryAlert
+)
+from mcp_gatekeeper import run_gatekeeper as run_gatekeeper_mcp
+from mock_db import create_jira_ticket
+from domain_map import lookup_team, get_triage_owner
+from llm_client import diplomat_compose
+
+logger = logging.getLogger(__name__)
 
 # ─── Gatekeeper ────────────────────────────────────────────────────────────────
 
 async def run_gatekeeper(alert: SentryAlert) -> GatekeeperDecision:
-    # Check for existing ticket (dedup)
-    existing = find_jira_ticket_by_sentry_id(alert.id)
-    existing_id = existing.key if existing else None
-
-    decision = await gatekeeper_classify(alert.model_dump(), existing_id)
+    logger.info("Gatekeeper start", extra={"alert": alert.dict()})
+    decision = None
+    try:
+        result = await run_gatekeeper_mcp(alert.model_dump())
+        logger.info("Gatekeeper got result", extra={"result": result})
+        decision = GatekeeperDecision(**result)
+    except* Exception as e:
+        logger.error("MCP sub-process failed", exc_info=True)
+        logger.error("MCP exception type=%s msg=%s", type(e), e, stack_info=True)
+        logger.error("Traceback:\n%s", traceback.format_exc())
+        decision = GatekeeperDecision(
+            classification=Classification.error,
+            confidence=0.0,
+            reasoning="MCP sub-process failed.",
+            is_high_priority=False
+        )
     return decision
 
 
@@ -31,8 +44,8 @@ async def run_architect(alert: SentryAlert, gk: GatekeeperDecision) -> Architect
     action = _decide_action(gk)
     ticket_key = None
 
-    if action == "create_ticket":
-        priority = "Highest" if gk.is_high_priority else "Medium"
+    if action == Action.create_ticket:
+        priority = Priority.highest if gk.is_high_priority else Priority.medium
         ticket = create_jira_ticket(
             summary=alert.title,
             priority=priority,
@@ -41,7 +54,7 @@ async def run_architect(alert: SentryAlert, gk: GatekeeperDecision) -> Architect
         )
         ticket_key = ticket.key
 
-    elif action == "archive" and gk.existing_ticket_id:
+    elif action == Action.archive and gk.existing_ticket_id:
         ticket_key = gk.existing_ticket_id
 
     return ArchitectDecision(
@@ -54,22 +67,26 @@ async def run_architect(alert: SentryAlert, gk: GatekeeperDecision) -> Architect
     )
 
 
-def _decide_action(gk: GatekeeperDecision) -> str:
-    if gk.classification == "duplicate":
-        return "archive"
-    if gk.classification == "noise":
-        return "resolve"
-    if gk.classification in ("valid_bug", "high_priority"):
-        return "create_ticket"
-    return "create_ticket"
+def _decide_action(gk: GatekeeperDecision) -> Action:
+    if gk.classification == Classification.error:
+        return Action.manual_triage
+    if gk.classification == Classification.duplicate:
+        return Action.archive
+    if gk.classification == Classification.noise:
+        return Action.resolve
+    if gk.classification in (Classification.valid_bug, Classification.high_priority):
+        return Action.create_ticket
+    return Action.create_ticket
 
 
 # ─── Diplomat ──────────────────────────────────────────────────────────────────
 
 async def run_diplomat(alert: SentryAlert, gk: GatekeeperDecision, arch: ArchitectDecision) -> DiplomatAction:
     action_label = arch.action
-    if gk.is_high_priority:
-        action_label = "escalate"
+    if gk.is_high_priority and arch.action == Action.create_ticket:
+        action_label = Action.escalate
+    elif gk.classification == Classification.error:
+        action_label = Action.system_failure
 
     diplomat = await diplomat_compose(
         action=action_label,
@@ -79,7 +96,6 @@ async def run_diplomat(alert: SentryAlert, gk: GatekeeperDecision, arch: Archite
         alert_title=alert.title,
     )
 
-    # Inject escalation targets for high priority
     if gk.is_high_priority:
         diplomat.escalation_targets = arch.leads + [arch.triage_owner]
 
