@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # ─── Gatekeeper ────────────────────────────────────────────────────────────────
 
 async def run_gatekeeper(alert: SentryAlert) -> GatekeeperDecision:
-    logger.info("Gatekeeper start", extra={"alert": alert.dict()})
+    logger.info("Gatekeeper start", extra={"alert": alert.model_dump()})
     decision = None
     try:
         result = await run_gatekeeper_mcp(alert.model_dump())

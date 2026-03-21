@@ -1,7 +1,9 @@
 import json
+import re
 import google.generativeai as genai
 from config import get_settings
 from models import GatekeeperDecision, DiplomatAction
+from json_utils import extract_json_payload
 
 _client = None
 
@@ -16,12 +18,7 @@ def get_client():
 
 
 def _parse_json(text: str) -> dict:
-    text = text.strip()
-    if text.startswith("```"):
-        text = text.split("```")[1]
-        if text.startswith("json"):
-            text = text[4:]
-    return json.loads(text.strip())
+    return extract_json_payload(text)
 
 
 async def diplomat_compose(action: str, team: str, ticket_key: str | None, reasoning: str, alert_title: str) -> DiplomatAction:
@@ -50,6 +47,6 @@ async def diplomat_compose(action: str, team: str, ticket_key: str | None, reaso
     "escalation_targets": ["@handle1"] or []
     }}"""
 
-    response = client.generate_content(prompt)
+    response = await client.generate_content_async(prompt)
     data = _parse_json(response.text)
     return DiplomatAction(**data)

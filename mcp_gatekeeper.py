@@ -1,15 +1,22 @@
 import json
+import logging
 import sys
 from pathlib import Path
 
 import google.generativeai as genai
 from google.generativeai.types import Tool, FunctionDeclaration
+from json_utils import extract_json_payload
 from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
 from config import get_settings
 
+logger = logging.getLogger(__name__)
+
 MODEL = "gemini-2.5-flash"
 settings = get_settings()
+
+genai.configure(api_key=settings.gemini_api_key)
+_gemini_client = genai.GenerativeModel(MODEL)
 
 def get_response_text(gen_response) -> str:
     """Safely extract text from a Gemini response without using the .text accessor."""
@@ -28,16 +35,19 @@ def get_response_text(gen_response) -> str:
     return ""
 
 def clean_response_text(text):
-    if text.startswith('```json\n') and text.endswith('\n```'):
-        return text[8:-4] 
-    return text.strip()
+    try:
+        parsed = extract_json_payload(text)
+        # normalize into compact JSON string for caller simplicity
+        return json.dumps(parsed)
+    except Exception:
+        return text.strip()
 
 # ── Connect to the Jira MCP server ─────────────────────────────────────────
 
 async def get_jira_session():
     cmd = sys.executable
     target = Path(__file__).resolve().parent / "mcp_jira.py"
-    print("get_jira_session:", cmd, target, "exists:", target.exists())
+    logger.info("get_jira_session", extra={"cmd": cmd, "target": str(target), "exists": target.exists()})
     server_params = StdioServerParameters(command=cmd, args=[str(target)])
     return stdio_client(server_params)
 
@@ -48,13 +58,13 @@ async def run_gatekeeper(alert: dict) -> dict:
     async with await get_jira_session() as (read, write):
         try:
             async with ClientSession(read, write) as session:
-                print("MCP session initialized")
+                logger.info("MCP session initialized")
                 await session.initialize()
-                print("MCP initialize done")
+                logger.info("MCP initialize done")
 
                 # Fetch available tools from the MCP server
                 tools_result = await session.list_tools()
-                print("MCP list_tools done, tools:", len(tools_result.tools))
+                logger.info("MCP list_tools done", extra={"tool_count": len(tools_result.tools)})
                 tools = Tool(
                     function_declarations=[
                         FunctionDeclaration(
@@ -129,7 +139,7 @@ async def run_gatekeeper(alert: dict) -> dict:
                 "existing_ticket_id": "NF-XXXXX or null"
                 }}"""
 
-                response = client.generate_content(
+                response = await client.generate_content_async(
                     prompt,
                     tools=tools,  # Gemini sees the MCP tools as function declarations
                 )
@@ -153,10 +163,10 @@ async def run_gatekeeper(alert: dict) -> dict:
                             "Now give me the final JSON classification. Output only valid JSON with no additional text."
                         ])
 
-                        followup = client.generate_content(followup_prompt)
-                        print("Follow-up response object:", followup)
+                        followup = await client.generate_content_async(followup_prompt)
+                        logger.debug("Follow-up response object", extra={"followup": repr(followup)})
                         followup_text = get_response_text(followup)
-                        print("Extracted followup_text:", repr(followup_text))
+                        logger.debug("Extracted followup_text", extra={"followup_text": repr(followup_text)})
 
                         followup_text = clean_response_text(followup_text)
 
@@ -171,5 +181,5 @@ async def run_gatekeeper(alert: dict) -> dict:
                         raise RuntimeError(f"empty direct response: {response}")
                     return json.loads(clean_response_text(direct_text))
         except* Exception as e:
-            print("run_gatekeeper error:", e)
+            logger.error("run_gatekeeper error", exc_info=True)
             raise

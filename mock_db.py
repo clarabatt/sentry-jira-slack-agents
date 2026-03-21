@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from models import SentryAlert, JiraTicket
+from models import Priority, SentryAlert, JiraTicket
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -19,7 +19,7 @@ def load_jira_tickets() -> list[JiraTicket]:
     return [JiraTicket(**t) for t in raw]
 
 
-def create_jira_ticket(summary: str, priority: str, url_path: str, sentry_id: str) -> JiraTicket:
+def create_jira_ticket(summary: str, priority: Priority, url_path: str, sentry_id: str) -> JiraTicket:
     tickets = load_jira_tickets()
     next_num = 21922 + len(tickets)
     ticket = JiraTicket(
