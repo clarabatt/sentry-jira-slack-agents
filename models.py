@@ -28,6 +28,7 @@ class Priority(str, Enum):
     high = "High"
     medium = "Medium"
     low = "Low"
+    unpriorized = "Unpriorized"
 
 class SentryAlert(BaseModel):
     id: str
