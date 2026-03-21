@@ -19,19 +19,6 @@ def load_jira_tickets() -> list[JiraTicket]:
     return [JiraTicket(**t) for t in raw]
 
 
-def find_jira_ticket_by_sentry_id(sentry_id: str) -> JiraTicket | None:
-    return next((t for t in load_jira_tickets() if t.sentry_issue_id == sentry_id), None)
-
-
-def find_jira_ticket_by_path(url_path: str) -> JiraTicket | None:
-    tickets = load_jira_tickets()
-    for t in tickets:
-        if t.url_path and url_path and (t.url_path in url_path or url_path in t.url_path):
-            if t.sentry_issue_id is None:
-                return t
-    return None
-
-
 def create_jira_ticket(summary: str, priority: str, url_path: str, sentry_id: str) -> JiraTicket:
     tickets = load_jira_tickets()
     next_num = 21922 + len(tickets)
