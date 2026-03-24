@@ -30,6 +30,12 @@ class Priority(str, Enum):
     low = "Low"
     unpriorized = "Unpriorized"
 
+class ProcessingStatus(str, Enum):
+    running = "running"
+    done = "done"
+    skipped = "skipped"
+
+
 class SentryAlert(BaseModel):
     id: str
     title: str
@@ -90,7 +96,7 @@ class AgentContext(BaseModel):
 
 class ProcessingStep(BaseModel):
     agent: str
-    status: str                  # "running" | "done" | "skipped"
+    status: ProcessingStatus
     result: Optional[dict] = None
 
 

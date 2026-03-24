@@ -34,6 +34,7 @@ def create_jira_ticket(summary: str, priority: Priority, url_path: str, sentry_i
         created_at="2026-03-20T09:30:00Z",
     )
     tickets.append(ticket)
-    raw = [t.model_dump() for t in tickets]
-    (DATA_DIR / "jira_tickets.json").write_text(json.dumps(raw, indent=2))
+    # In a real implementation, we would persist this to the database.
+    # raw = [t.model_dump() for t in tickets]
+    # (DATA_DIR / "jira_tickets.json").write_text(json.dumps(raw, indent=2))
     return ticket

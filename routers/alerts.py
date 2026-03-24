@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from models import SentryAlert, AgentContext, AlertProcessingResult, ProcessingStep, JiraTicket
+from models import ProcessingStatus, SentryAlert, AgentContext, AlertProcessingResult, ProcessingStep, JiraTicket
 from mock_db import load_sentry_alerts, get_sentry_alert, load_jira_tickets
 from agents import run_gatekeeper, run_architect, run_diplomat
 
@@ -32,10 +32,10 @@ async def process_alert(alert_id: str):
     ctx = AgentContext(alert=alert)
 
     # ── Step 1: Gatekeeper ──────────────────────────────────────────────────
-    steps.append(ProcessingStep(agent="Gatekeeper", status="running"))
+    steps.append(ProcessingStep(agent="Gatekeeper", status=ProcessingStatus.running))
     try:
         ctx.gatekeeper = await run_gatekeeper(alert)
-        steps[-1].status = "done"
+        steps[-1].status = ProcessingStatus.done
         steps[-1].result = ctx.gatekeeper.model_dump()
     except Exception as e:
         steps[-1].status = "error"
@@ -43,10 +43,10 @@ async def process_alert(alert_id: str):
         return _build_result(alert_id, steps, "error", ctx)
 
     # ── Step 2: Architect ───────────────────────────────────────────────────
-    steps.append(ProcessingStep(agent="Architect", status="running"))
+    steps.append(ProcessingStep(agent="Architect", status=ProcessingStatus.running))
     try:
         ctx.architect = await run_architect(alert, ctx.gatekeeper)
-        steps[-1].status = "done"
+        steps[-1].status = ProcessingStatus.done
         steps[-1].result = ctx.architect.model_dump()
     except Exception as e:
         steps[-1].status = "error"
@@ -54,13 +54,13 @@ async def process_alert(alert_id: str):
         return _build_result(alert_id, steps, "error", ctx)
 
     # ── Step 3: Diplomat ────────────────────────────────────────────────────
-    steps.append(ProcessingStep(agent="Diplomat", status="running"))
+    steps.append(ProcessingStep(agent="Diplomat", status=ProcessingStatus.running))
     try:
         ctx.diplomat = await run_diplomat(alert, ctx.gatekeeper, ctx.architect)
-        steps[-1].status = "done"
+        steps[-1].status = ProcessingStatus.done
         steps[-1].result = ctx.diplomat.model_dump()
     except Exception as e:
-        steps[-1].status = "error"
+        steps[-1].status = ProcessingStatus.skipped
         steps[-1].result = {"error": str(e)}
         return _build_result(alert_id, steps, "error", ctx)
 

@@ -1051,7 +1051,7 @@
         let html = `<div class="thread-msg">🤖 <strong>Sentry Agent</strong> — ${slack.thread_message || ""}</div>`;
 
         if (slack.ticket) {
-          html += `<div class="thread-ticket">🎫 <span style="color:var(--amber)">${slack.ticket}</span> created in Jira</div>`;
+          html += `<div class="thread-ticket">🎫 <span style="color:var(--amber)">${slack.ticket}</span> in Jira</div>`;
         }
 
         if (slack.escalation_targets && slack.escalation_targets.length) {

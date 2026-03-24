@@ -1,8 +1,6 @@
-import json
-import re
 import google.generativeai as genai
 from config import get_settings
-from models import GatekeeperDecision, DiplomatAction
+from models import DiplomatAction
 from json_utils import extract_json_payload
 
 _client = None
@@ -15,10 +13,6 @@ def get_client():
         genai.configure(api_key=settings.gemini_api_key)
         _client = genai.GenerativeModel("gemini-2.5-flash")
     return _client
-
-
-def _parse_json(text: str) -> dict:
-    return extract_json_payload(text)
 
 
 async def diplomat_compose(action: str, team: str, ticket_key: str | None, reasoning: str, alert_title: str) -> DiplomatAction:
@@ -48,5 +42,5 @@ async def diplomat_compose(action: str, team: str, ticket_key: str | None, reaso
     }}"""
 
     response = await client.generate_content_async(prompt)
-    data = _parse_json(response.text)
+    data = extract_json_payload(response.text)
     return DiplomatAction(**data)

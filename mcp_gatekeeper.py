@@ -5,9 +5,9 @@ from pathlib import Path
 
 import google.generativeai as genai
 from google.generativeai.types import Tool, FunctionDeclaration
-from json_utils import extract_json_payload
 from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
+from text_utils import get_response_text, clean_response_text
 from config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -18,29 +18,6 @@ settings = get_settings()
 genai.configure(api_key=settings.gemini_api_key)
 _gemini_client = genai.GenerativeModel(MODEL)
 
-def get_response_text(gen_response) -> str:
-    """Safely extract text from a Gemini response without using the .text accessor."""
-    for candidate in getattr(gen_response, "candidates", []) or []:
-        content = getattr(candidate, "content", None)
-        if content is None:
-            continue
-        if isinstance(content, str):
-            return content.strip()
-        for part in getattr(content, "parts", []) or []:
-            if isinstance(part, str):
-                return part.strip()
-            text = getattr(part, "text", None)
-            if text is not None:
-                return text.strip()
-    return ""
-
-def clean_response_text(text):
-    try:
-        parsed = extract_json_payload(text)
-        # normalize into compact JSON string for caller simplicity
-        return json.dumps(parsed)
-    except Exception:
-        return text.strip()
 
 # ── Connect to the Jira MCP server ─────────────────────────────────────────
 
@@ -178,7 +155,14 @@ async def run_gatekeeper(alert: dict) -> dict:
                     # Gemini answered directly without calling a tool — use safe accessor
                     direct_text = get_response_text(response)
                     if not direct_text:
-                        raise RuntimeError(f"empty direct response: {response}")
+                        logger.error("Gemini returned empty text candidate", extra={"response": repr(response)})
+                        return {
+                            "classification": "error",
+                            "confidence": 0.0,
+                            "reasoning": "Gemini generate_content_async returned an empty model content; cannot parse response.",
+                            "is_high_priority": False,
+                            "existing_ticket_id": None,
+                        }
                     return json.loads(clean_response_text(direct_text))
         except* Exception as e:
             logger.error("run_gatekeeper error", exc_info=True)

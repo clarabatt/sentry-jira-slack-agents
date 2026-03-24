@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
