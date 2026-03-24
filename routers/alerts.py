@@ -38,7 +38,7 @@ async def process_alert(alert_id: str):
         steps[-1].status = ProcessingStatus.done
         steps[-1].result = ctx.gatekeeper.model_dump()
     except Exception as e:
-        steps[-1].status = "error"
+        steps[-1].status = ProcessingStatus.error
         steps[-1].result = {"error": str(e)}
         return _build_result(alert_id, steps, "error", ctx)
 
@@ -49,7 +49,7 @@ async def process_alert(alert_id: str):
         steps[-1].status = ProcessingStatus.done
         steps[-1].result = ctx.architect.model_dump()
     except Exception as e:
-        steps[-1].status = "error"
+        steps[-1].status = ProcessingStatus.error
         steps[-1].result = {"error": str(e)}
         return _build_result(alert_id, steps, "error", ctx)
 
@@ -67,7 +67,7 @@ async def process_alert(alert_id: str):
     return _build_result(alert_id, steps, "completed", ctx)
 
 
-def _build_result(alert_id: str, steps: list, status: str, ctx: AgentContext) -> AlertProcessingResult:
+def _build_result(alert_id: str, steps: list, status: ProcessingStatus, ctx: AgentContext) -> AlertProcessingResult:
     slack_mock = {}
     if ctx.diplomat:
         slack_mock = {

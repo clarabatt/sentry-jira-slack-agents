@@ -34,6 +34,7 @@ class ProcessingStatus(str, Enum):
     running = "running"
     done = "done"
     skipped = "skipped"
+    error = "error"
 
 
 class SentryAlert(BaseModel):

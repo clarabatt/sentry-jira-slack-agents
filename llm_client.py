@@ -1,6 +1,6 @@
 import google.generativeai as genai
 from config import get_settings
-from models import DiplomatAction
+from models import Action, DiplomatAction
 from json_utils import extract_json_payload
 
 _client = None
@@ -15,7 +15,7 @@ def get_client():
     return _client
 
 
-async def diplomat_compose(action: str, team: str, ticket_key: str | None, reasoning: str, alert_title: str) -> DiplomatAction:
+async def diplomat_compose(action: Action, team: str, ticket_key: str | None, reasoning: str, alert_title: str) -> DiplomatAction:
     client = get_client()
 
     prompt = f"""You are the Diplomat agent in a Sentry triage system. Compose a concise Slack thread message.

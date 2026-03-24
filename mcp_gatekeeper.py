@@ -7,6 +7,7 @@ import google.generativeai as genai
 from google.generativeai.types import Tool, FunctionDeclaration
 from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
+from models import Classification
 from text_utils import get_response_text, clean_response_text
 from config import get_settings
 
@@ -157,7 +158,7 @@ async def run_gatekeeper(alert: dict) -> dict:
                     if not direct_text:
                         logger.error("Gemini returned empty text candidate", extra={"response": repr(response)})
                         return {
-                            "classification": "error",
+                            "classification": Classification.error,
                             "confidence": 0.0,
                             "reasoning": "Gemini generate_content_async returned an empty model content; cannot parse response.",
                             "is_high_priority": False,
